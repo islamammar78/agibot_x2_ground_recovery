@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# ROS 2
+build/
+install/
+log/
+
+# Training outputs
+runs/
+wandb/
+checkpoints/
+*.pt
+*.pth
+
+# Simulation/cache
+.mujoco/
+__pycache__/
+.cache/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
