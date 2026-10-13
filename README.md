@@ -20,14 +20,13 @@ This repository adapts **FRASA (Fall Recovery And Stand-up Agent)** ([paper](htt
 conda create -n frasa python=3.10 && conda activate frasa
 pip install rl_zoo3
 pip install "jax[cuda12]==0.6.2"      # GPU training; omit for CPU-only JAX
-cd ~/agibot_x2_ground_recovery/frasa/
-pip install -e .                      # installs frasa_env
 python -m pip install opencv-python==5.0.0.93
 ```
 then:
 
 ```bash
-cd ~
+cd ~/agibot_x2_ground_recovery/frasa/
+pip install -e .                      # installs frasa_env
 git clone git@github.com:islamammar78/agibot_x2_ground_recovery.git
 ```
 
