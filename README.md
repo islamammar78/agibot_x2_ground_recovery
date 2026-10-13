@@ -330,12 +330,15 @@ Package: `ros2_ws/src/x2_recovery_ros` (ROS 2 Humble, `ament_python`).
 ### Build and launch
 
 ```bash
+cd ~/agibot_x2_ground_recovery
+export X2_RECOVERY_PROJECT_ROOT="$(pwd)"
 source /opt/ros/humble/setup.bash
 cd ros2_ws
 colcon build --packages-select x2_recovery_ros
 source install/setup.bash
 ros2 launch x2_recovery_ros recovery.launch.py
 ```
+Note: Run these commands in order. The X2_RECOVERY_PROJECT_ROOT environment variable must be exported again in each new terminal session before launching the recovery node.
 
 ### Service and topic commands
 
