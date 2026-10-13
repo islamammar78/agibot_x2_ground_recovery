@@ -25,9 +25,9 @@ python -m pip install opencv-python==5.0.0.93
 then:
 
 ```bash
+git clone git@github.com:islamammar78/agibot_x2_ground_recovery.git
 cd ~/agibot_x2_ground_recovery/frasa/
 pip install -e .                      # installs frasa_env
-git clone git@github.com:islamammar78/agibot_x2_ground_recovery.git
 ```
 
 Always run the scripts from this `frasa/` folder: another copy of `frasa_env` elsewhere on the machine would otherwise be imported.
