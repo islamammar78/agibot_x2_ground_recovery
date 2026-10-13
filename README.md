@@ -17,11 +17,13 @@ This repository adapts **FRASA (Fall Recovery And Stand-up Agent)** ([paper](htt
 ## Installation
 
 ```bash
+git@github.com:islamammar78/agibot_x2_ground_recovery.git
 conda create -n frasa python=3.10 && conda activate frasa
 pip install rl_zoo3
 pip install "jax[cuda12]==0.6.2"      # GPU training; omit for CPU-only JAX
 cd ~/agibot_x2_ground_recovery/frasa/
 pip install -e .                      # installs frasa_env
+python -m pip install opencv-python==5.0.0.93
 ```
 
 Always run the scripts from this `frasa/` folder: another copy of `frasa_env` elsewhere on the machine would otherwise be imported.
@@ -84,7 +86,7 @@ python test_env.py --normal --std 2      # Gaussian noise on actions
 Command used for the last run (run E, 1M steps), launched with resource limits because an earlier 16-env CPU run froze the laptop:
 
 ```bash
-cd frasa
+cd ~/agibot_x2_ground_recovery/frasa
 mkdir -p ~/frasa_runs/E
 nohup systemd-run --user --scope -p MemoryMax=10G -p CPUQuota=600% nice -n 19 taskset -c 0-5 \
   env OMP_NUM_THREADS=2 XLA_PYTHON_CLIENT_MEM_FRACTION=0.4 \
