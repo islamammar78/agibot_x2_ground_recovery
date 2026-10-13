@@ -202,6 +202,37 @@ python enjoy_sbx.py --algo crossq --env frasa-standup-v0 --gym-packages frasa_en
 
 `run_single_recovery.py` runs one supine recovery episode in the viewer with the checkpoint in `models/crossq/` (also used by ROS 2).
 
+### Running the Trained Model
+
+The trained CrossQ model generated during this experiment is stored in `models/crossq/frasa-standup-v0_1/`. It was produced as part of the X2 Ultra ground recovery training experiment described in this repository.
+
+To evaluate the model in the MuJoCo viewer, run the following commands from the `frasa/` directory:
+
+```bash
+cd ~/agibot_x2_ground_recovery/frasa
+conda activate frasaaa
+
+python enjoy_sbx.py \
+  --algo crossq \
+  --env frasa-standup-v0 \
+  --gym-packages frasa_env \
+  --folder ./models/ \
+  --exp-id 1 \
+  --deterministic \
+  -n 2000
+```
+
+**Arguments:**
+- `--algo crossq`: Loads the CrossQ reinforcement learning algorithm.
+- `--env frasa-standup-v0`: Selects the X2 Ultra stand-up environment.
+- `--gym-packages frasa_env`: Registers the custom FRASA environment.
+- `--folder ./models/`: Specifies the local model directory.
+- `--exp-id 1`: Selects the experiment checkpoint in `models/crossq/frasa-standup-v0_1/`.
+- `--deterministic`: Runs the policy deterministically.
+- `-n 2000`: Sets the maximum number of evaluation timesteps, not the number of recovery episodes.
+
+To evaluate the best saved checkpoint (`best_model.zip`), add `--load-best` to the command.
+
 ## X2 Ultra Model
 
 The model is in `frasa_env/mujoco_simulator/model/x2_ultra.xml` (scene in `scene.xml`; source URDF in `agibot_x2_urdf/`). Torque-controlled motors with control ranges, and joint limits.
