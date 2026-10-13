@@ -344,6 +344,7 @@ ros2 launch x2_recovery_ros recovery.launch.py
 Note: Run these commands in order. The X2_RECOVERY_PROJECT_ROOT environment variable must be exported again in each new terminal session before launching the recovery node.
 
 ### Service and topic commands
+on a second terminal, source the environment and run the following commands:
 
 ```bash
 ros2 service call /x2/start_recovery std_srvs/srv/Trigger "{}"
