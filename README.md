@@ -84,33 +84,111 @@ python test_env.py --normal --std 2      # Gaussian noise on actions
 
 ## Training
 
-Command used for the last run (run E, 1M steps), launched with resource limits because an earlier 16-env CPU run froze the laptop:
+Command used for the last run (run E, 1M steps), launched with resource limits because an earlier 16-env CPU run froze the laptop.
+
+Run this from the FRASA directory. Ensure `hyperparams/crossq.yml` exists before starting.
 
 ```bash
 cd ~/agibot_x2_ground_recovery/frasa
 mkdir -p ~/frasa_runs/E
-nohup systemd-run --user --scope -p MemoryMax=10G -p CPUQuota=600% nice -n 19 taskset -c 0-5 \
+
+nohup systemd-run --user --scope \
+  -p MemoryMax=10G -p CPUQuota=600% \
+  nice -n 19 taskset -c 0-5 \
   env OMP_NUM_THREADS=2 XLA_PYTHON_CLIENT_MEM_FRACTION=0.4 \
-  python train_sbx.py --algo crossq --env frasa-standup-v0 --conf hyperparams/crossq.yml \
-  -n 1000000 --eval-freq 25000 --eval-episodes 5 -f ~/frasa_runs/E/logs \
+  python train_sbx.py --algo crossq --env frasa-standup-v0 \
+  --conf hyperparams/crossq.yml \
+  -n 1000000 --eval-freq 25000 --eval-episodes 5 \
+  -f ~/frasa_runs/E/logs \
   -params n_envs:4 buffer_size:300000 gradient_steps:64 learning_starts:20000 \
   > ~/frasa_runs/E/train.log 2>&1 &
 ```
 
-Monitor progress:
+### Monitor training
+
+Follow the training log:
 
 ```bash
 tail -f ~/frasa_runs/E/train.log
-tensorboard --logdir ~/frasa_runs/E/logs        # if tensorboard logging is enabled
-python -c "
-import numpy as np,glob,os
-f=sorted(glob.glob(os.path.expanduser('~/frasa_runs/E/logs/crossq/*/evaluations.npz')))[-1]
-e=np.load(f)
-for t,r in zip(e['timesteps'],e['results'].mean(1)): print(t, round(r,1))"
 ```
 
-Do not launch two trainings at once (memory doubles). `hyperparams/crossq.yml` is keyed `frasa-standup-v0-10ms/-25ms`, which does not match the env id, so the hyperparameters are overridden through `-params`.
+Press `Ctrl+C` to stop following the log. This does **not** stop the training process.
 
+If TensorBoard is installed and logging is enabled:
+
+```bash
+tensorboard --logdir ~/frasa_runs/E/logs
+```
+
+Print recorded evaluation rewards:
+
+```bash
+python -c "
+import numpy as np, glob, os
+files = glob.glob(os.path.expanduser('~/frasa_runs/E/logs/crossq/*/evaluations.npz'))
+if not files:
+    print('No evaluation results found yet.')
+else:
+    f = max(files, key=os.path.getmtime)
+    e = np.load(f)
+    for t, r in zip(e['timesteps'], e['results'].mean(axis=1)):
+        print(t, round(r, 1))
+"
+```
+
+These are recorded evaluation results, not necessarily live training progress.
+
+### Stop training and save the model
+
+**Important:** Sending an interrupt requests a graceful shutdown, but it does not guarantee that the current model will be saved. Checkpoint saving depends on the training script and its interruption handling. Ideally, configure periodic checkpoints before starting a long run.
+
+1. Find the running training process:
+
+   ```bash
+   pgrep -af 'train_sbx.py'
+   ```
+
+2. Send an interrupt to the training process:
+
+   ```bash
+   PID=$(pgrep -f '[t]rain_sbx.py' | head -n 1)
+
+   if [ -n "$PID" ]; then
+       kill -INT "$PID"
+       echo "Interrupt sent to training PID $PID"
+   else
+       echo "No active training process found."
+   fi
+   ```
+
+3. Wait for shutdown and inspect the log:
+
+   ```bash
+   tail -n 50 ~/frasa_runs/E/train.log
+   ```
+
+4. Find saved model checkpoints:
+
+   ```bash
+   find ~/frasa_runs/E/logs -type f -name '*.zip' \
+     -printf '%TY-%Tm-%Td %TH:%TM  %p\n' | sort -r
+   ```
+
+The output shows the checkpoint paths and modification times. Common checkpoint names include `rl_model_*.zip` and `best_model.zip`, depending on the configured callbacks. The final model may have a different name.
+
+To list all files saved for run E:
+
+```bash
+find ~/frasa_runs/E -type f
+```
+
+**Do not assume the model was saved just because the process stopped.** Confirm that a checkpoint exists and check its timestamp. If no recent checkpoint exists, the training code must be configured to save periodically or handle interruption before relying on graceful shutdown to preserve the model.
+
+### Notes
+
+- Do not launch two trainings simultaneously; memory use can increase substantially.
+- The configuration keys in `hyperparams/crossq.yml` are `frasa-standup-v0-10ms` and `frasa-standup-v0-25ms`, which do not match the registered environment ID `frasa-standup-v0`. The command therefore overrides the relevant hyperparameters using `-params`.
+- Run E outputs are stored under `~/frasa_runs/E/`. Use a different output directory for each new run to avoid mixing logs and checkpoints.
 ## Evaluation / Enjoy a Trained Agent
 
 ```bash
